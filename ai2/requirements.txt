@@ -3,4 +3,4 @@ requests
 bs4
 pyperclip
 transformers
-
+tensorflow==2.12
