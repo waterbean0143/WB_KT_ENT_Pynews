@@ -3,3 +3,5 @@ yfinance==0.1.63
 prophet==1.0.1
 streamlit==0.87.0
 yahooquery==2.3.2
+Cython==0.29.24
+numpy==1.21.0
