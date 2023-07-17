@@ -1,8 +1,6 @@
-python 22.0.3
 streamlit
 requests
 bs4
 pyperclip
 transformers
-tensorflow==2.12
-openai
+
