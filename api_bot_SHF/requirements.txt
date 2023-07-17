@@ -2,4 +2,4 @@ openai==0.27.0
 yfinance==0.1.63
 prophet==1.0.1
 streamlit==0.87.0
-yahooquery==2.3.12
+yahooquery==2.3.2
