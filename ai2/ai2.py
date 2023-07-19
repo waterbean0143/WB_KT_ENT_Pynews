@@ -2,9 +2,11 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import pyperclip
-from transformers import pipeline
-from urllib.parse import urljoin
 import openai
+from urllib.parse import urljoin
+
+# OpenAI API 초기화
+openai.api_key = "YOUR_OPENAI_API_KEY"
 
 def extract_article_list(url):
     # 1. URL에서 HTML 내용 가져오기
@@ -56,12 +58,22 @@ def extract_article_content(url):
     return article_content
 
 
+def summarize_text(text):
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=text,
+        max_tokens=100,
+        temperature=0.3,
+        top_p=1.0,
+        frequency_penalty=0.0,
+        presence_penalty=0.0
+    )
+    return response.choices[0].text.strip()
+
+
 # Streamlit layout
 st.sidebar.title('OpenAI API Key')
 openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
-
-# OpenAI API Key 설정
-openai.api_key = openai_key
 
 st.title('WB_ArticleScraper')
 # URL 선택 옵션
@@ -84,9 +96,8 @@ if url:
         for title, link, content in zip(article_titles, article_links, article_contents):
             st.markdown(f'[{title}]({link})')
             st.text_area('Article Content:', content, height=300)
-            if st.button('Summarize', key=f"{title}_summarize"):
-                summarization_model = pipeline("summarization")
-                summary = summarization_model(content, max_length=150, min_length=30, do_sample=False)[0]["summary_text"]
+            if st.button('GPT로 요약하기', key=f"{title}_summarize"):
+                summary = summarize_text(content)
                 st.write('Summary:')
                 st.markdown(f"- {summary}")
                 if st.button('Copy Summary to Clipboard', key=f"{title}_summary_copy"):
