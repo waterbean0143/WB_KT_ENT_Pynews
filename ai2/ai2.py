@@ -4,9 +4,7 @@ from bs4 import BeautifulSoup
 import pyperclip
 from transformers import pipeline
 from urllib.parse import urljoin
-
-# OpenAI API Key 설정
-openai.api_key = openai_key
+import openai
 
 def extract_article_list(url):
     # 1. URL에서 HTML 내용 가져오기
@@ -61,6 +59,9 @@ def extract_article_content(url):
 # Streamlit layout
 st.sidebar.title('OpenAI API Key')
 openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
+
+# OpenAI API Key 설정
+openai.api_key = openai_key
 
 st.title('WB_ArticleScraper')
 # URL 선택 옵션
