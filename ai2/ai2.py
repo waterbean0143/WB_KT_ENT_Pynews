@@ -58,17 +58,24 @@ def extract_article_content(url):
     return article_content
 
 
-def summarize_text(text):
+def summarize_text(text, max_tokens=100, bullet_points=True):
+    prompt = f"summarize: {text}"
     response = openai.Completion.create(
         engine="text-davinci-003",
-        prompt=text,
-        max_tokens=200,
-        temperature=0.3,
+        prompt=prompt,
+        max_tokens=max_tokens,
+        n=1,
+        stop=None,
+        temperature=0.5,
         top_p=1.0,
         frequency_penalty=0.0,
-        presence_penalty=0.0
+        presence_penalty=0.0,
     )
-    return response.choices[0].text.strip()
+    summary = response.choices[0].text.strip()
+    if bullet_points:
+        summary = "\n".join([f"- {item.strip()}" for item in summary.split("\n")])
+    return summary
+
 
 
 # Streamlit layout
