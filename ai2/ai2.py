@@ -75,6 +75,9 @@ def summarize_text(text):
 st.sidebar.title('OpenAI API Key')
 openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
 
+# OpenAI API 초기화
+openai.api_key = openai_key
+
 st.title('WB_ArticleScraper')
 # URL 선택 옵션
 option = st.selectbox('URL 입력 방식', ['인공지능신문(aitimes) AI 산업군 - 제목형', '직접 입력'])
