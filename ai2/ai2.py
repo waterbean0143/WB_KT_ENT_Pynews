@@ -3,6 +3,38 @@ import requests
 from bs4 import BeautifulSoup
 import pyperclip
 
+def extract_article_list(url):
+    # 1. URL에서 HTML 내용 가져오기
+    response = requests.get(url)
+    html_content = response.content
+
+    # 2. HTML 파싱
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # 3. 기사 제목 추출
+    article_titles = []
+    title_elements = soup.select('#section-list > ul > li > h4.titles')
+    for title_element in title_elements:
+        article_title = title_element.get_text()
+        article_titles.append(article_title)
+
+    # 4. 기사 링크 추출
+    article_links = []
+    link_elements = soup.select('#section-list > ul > li > h4 > a')
+    for link_element in link_elements:
+        article_link = link_element.get('href')
+        article_links.append(article_link)
+
+    # 5. 기사 본문 추출
+    article_contents = []
+    for link in article_links:
+        article_url = f"https://www.aitimes.kr{link}"
+        article_content = extract_article_content(article_url)
+        article_contents.append(article_content)
+
+    return article_titles, article_links, article_contents
+
+
 def extract_article_content(url):
     # 1. URL에서 HTML 내용 가져오기
     response = requests.get(url)
@@ -12,31 +44,20 @@ def extract_article_content(url):
     soup = BeautifulSoup(html_content, 'html.parser')
 
     # 3. 본문 추출
-    article_content_element = soup.select_one('#skin-12 > div:nth-child(2)')
+    article_content_element = soup.select_one('#snsAnchor > div')
     if article_content_element is None:
         raise ValueError("Could not find article content")
-    article_content = article_content_element.get_text()
+    article_content_paragraphs = article_content_element.find_all('p')
+    article_content = "\n".join([p.get_text() for p in article_content_paragraphs])
 
-    # 4. 기사 항목과 해당 항목의 URL 추출
-    article_item_element = soup.select_one('#section-list > ul > li:nth-child(1) > h4 > a')
-    if article_item_element is None:
-        raise ValueError("Could not find article item")
-    article_item = article_item_element.get_text()
+    return article_content
 
-    article_url = article_item_element.get('href')
-    if article_url is None:
-        raise ValueError("Could not find article URL")
-    
-    return article_content, article_item, article_url
 
 # Streamlit layout
-st.sidebar.title('OpenAI API Key')
-openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
+st.title('Web Article List Scraper')
 
-st.title('Web Article Scraper')
-
-# URL을 입력받고 기사의 본문을 출력합니다.
-url = st.text_input("기사 URL을 입력하세요: ", "")
+# URL을 입력받고 기사 제목, 링크, 본문을 출력합니다.
+url = st.text_input("뉴스 기사 리스트 URL을 입력하세요: ", "")
 
 if url:
     try:
@@ -46,12 +67,15 @@ if url:
                 url = "https://" + url  # 스키마 추가
             else:
                 url = "https://www." + url  # 스키마 추가
-        article_content, article_item, article_url = extract_article_content(url)
-        st.text_area('Article Content:', article_content, height=300)
-        st.write('Article Item:', article_item)
-        st.write('Article URL:', article_url)
-        if st.button('Copy to Clipboard'):
-            pyperclip.copy(article_content)
-            st.success('Text Copied to clipboard')
+        article_titles, article_links, article_contents = extract_article_list(url)
+        for title, link, content in zip(article_titles, article_links, article_contents):
+            st.write('Article Title:', title)
+            st.write('Article Link:', link)
+            st.text_area('Article Content:', content, height=300)
+            if st.button('Copy to Clipboard', key=title):
+                article_info = f"Title: {title}\nLink: {link}\n\n{content}"
+                pyperclip.copy(article_info)
+                st.success('Text Copied to clipboard')
+            st.write('---')
     except Exception as e:
         st.error(f"An error occurred: {e}")
