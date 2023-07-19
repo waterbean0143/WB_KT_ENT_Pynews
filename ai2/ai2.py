@@ -2,15 +2,8 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import pyperclip
-import openai
+from transformers import pipeline
 from urllib.parse import urljoin
-
-# Set OpenAI API key
-openai_key = "YOUR_OPENAI_API_KEY"  # Replace with your OpenAI API key
-
-# Configure OpenAI
-openai.api_key = openai_key
-
 
 def extract_article_list(url):
     # 1. URL에서 HTML 내용 가져오기
@@ -62,28 +55,9 @@ def extract_article_content(url):
     return article_content
 
 
-def summarize_text(text, max_tokens=100, bullet_points=True):
-    prompt = f"summarize: {text}"
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        prompt=prompt,
-        max_tokens=max_tokens,
-        n=1,
-        stop=None,
-        temperature=0.5,
-        top_p=1.0,
-        frequency_penalty=0.0,
-        presence_penalty=0.0,
-    )
-    summary = response.choices[0].text.strip()
-    if bullet_points:
-        summary = "\n".join([f"- {item.strip()}" for item in summary.split("\n")])
-    return summary
-
-
 # Streamlit layout
 st.sidebar.title('OpenAI API Key')
-openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
+openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", value="", type="password", key="openai_key_input")
 
 st.title('WB_ArticleScraper')
 
@@ -108,9 +82,11 @@ if url:
             st.markdown(f'[{title}]({link})')
             st.text_area('Article Content:', content, height=300)
             if st.button('GPT로 요약하기', key=f"{title}_summarize"):
-                summary = summarize_text(content, max_tokens=200, bullet_points=True)
+                summarization_model = pipeline("summarization", model="t5-base", tokenizer="t5-base", framework="tf", device=0)
+                prompt = "summarize: " + content[:600]  # Adjust the character limit as needed
+                summary = summarize_text(prompt, openai_key)
                 st.write('Summary:')
-                st.markdown(summary)
+                st.markdown(f"- {summary}")
                 if st.button('Copy Summary to Clipboard', key=f"{title}_summary_copy"):
                     pyperclip.copy(summary)
                     st.success('Summary Copied to clipboard')
