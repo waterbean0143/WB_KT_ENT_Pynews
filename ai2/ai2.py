@@ -62,7 +62,7 @@ def summarize_text(text):
     response = openai.Completion.create(
         engine="text-davinci-003",
         prompt=text,
-        max_tokens=100,
+        max_tokens=200,
         temperature=0.3,
         top_p=1.0,
         frequency_penalty=0.0,
