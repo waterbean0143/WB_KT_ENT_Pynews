@@ -56,7 +56,7 @@ def extract_article_content(url):
 
 
 def summarize_text(prompt, api_key):
-    url = "https://api.openai.com/v1/engines/davinci-codex/completions"
+    url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}"
