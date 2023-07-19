@@ -56,6 +56,9 @@ def extract_article_content(url):
 
 
 # Streamlit layout
+st.sidebar.title('OpenAI API Key')
+openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
+
 st.title('WB_ArticleScraper')
 
 # URL 선택 옵션
