@@ -3,10 +3,13 @@ import requests
 from bs4 import BeautifulSoup
 import pyperclip
 import openai
-from urllib.parse import urljoin
 
-# OpenAI API 초기화
-openai.api_key = "YOUR_OPENAI_API_KEY"
+# Set OpenAI API key
+openai_key = "YOUR_OPENAI_API_KEY"  # Replace with your OpenAI API key
+
+# Configure OpenAI
+openai.api_key = openai_key
+
 
 def extract_article_list(url):
     # 1. URL에서 HTML 내용 가져오기
@@ -77,15 +80,12 @@ def summarize_text(text, max_tokens=100, bullet_points=True):
     return summary
 
 
-
 # Streamlit layout
 st.sidebar.title('OpenAI API Key')
 openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
 
-# OpenAI API 초기화
-openai.api_key = openai_key
-
 st.title('WB_ArticleScraper')
+
 # URL 선택 옵션
 option = st.selectbox('URL 입력 방식', ['인공지능신문(aitimes) AI 산업군 - 제목형', '직접 입력'])
 
@@ -107,9 +107,9 @@ if url:
             st.markdown(f'[{title}]({link})')
             st.text_area('Article Content:', content, height=300)
             if st.button('GPT로 요약하기', key=f"{title}_summarize"):
-                summary = summarize_text(content)
+                summary = summarize_text(content, max_tokens=200, bullet_points=True)
                 st.write('Summary:')
-                st.markdown(f"- {summary}")
+                st.markdown(summary)
                 if st.button('Copy Summary to Clipboard', key=f"{title}_summary_copy"):
                     pyperclip.copy(summary)
                     st.success('Summary Copied to clipboard')
