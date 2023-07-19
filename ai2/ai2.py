@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import pyperclip
 import openai
+from urllib.parse import urljoin
 
 # Set OpenAI API key
 openai_key = "YOUR_OPENAI_API_KEY"  # Replace with your OpenAI API key
