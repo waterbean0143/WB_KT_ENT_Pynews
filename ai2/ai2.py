@@ -56,8 +56,10 @@ def extract_article_content(url):
 
 
 # Streamlit layout
-st.title('WB_ArticleScraper')
+st.sidebar.title('OpenAI API Key')
+openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
 
+st.title('WB_ArticleScraper')
 # URL 선택 옵션
 option = st.selectbox('URL 입력 방식', ['인공지능신문(aitimes) AI 산업군 - 제목형', '직접 입력'])
 
