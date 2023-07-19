@@ -4,3 +4,4 @@ bs4
 pyperclip
 transformers
 tensorflow==2.12
+openai==0.27.0
