@@ -55,6 +55,27 @@ def extract_article_content(url):
     return article_content
 
 
+def summarize_text(prompt, api_key):
+    url = "https://api.openai.com/v1/engines/davinci-codex/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+    data = {
+        "prompt": prompt,
+        "max_tokens": 150,
+        "temperature": 0.5,
+        "top_p": 1.0,
+        "frequency_penalty": 0.0,
+        "presence_penalty": 0.0
+    }
+    response = requests.post(url, json=data, headers=headers)
+    response.raise_for_status()
+    result = response.json()
+    summary = result["choices"][0]["text"].strip()
+    return summary
+
+
 # Streamlit layout
 st.sidebar.title('OpenAI API Key')
 openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", value="", type="password", key="openai_key_input")
