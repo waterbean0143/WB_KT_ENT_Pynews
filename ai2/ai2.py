@@ -5,6 +5,9 @@ import pyperclip
 from transformers import pipeline
 from urllib.parse import urljoin
 
+# OpenAI API Key 설정
+openai.api_key = openai_key
+
 def extract_article_list(url):
     # 1. URL에서 HTML 내용 가져오기
     response = requests.get(url)
