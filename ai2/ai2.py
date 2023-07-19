@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import pyperclip
+from transformers import pipeline
+from urllib.parse import urljoin
 
 def extract_article_list(url):
     # 1. URL에서 HTML 내용 가져오기
@@ -23,13 +25,13 @@ def extract_article_list(url):
     link_elements = soup.select('#section-list > ul > li > h4 > a')
     for link_element in link_elements:
         article_link = link_element.get('href')
-        article_links.append(article_link)
+        article_url = urljoin(url, article_link)  # 절대 경로로 변환
+        article_links.append(article_url)
 
     # 5. 기사 본문 추출
     article_contents = []
     for link in article_links:
-        article_url = f"https://www.aitimes.kr{link}"
-        article_content = extract_article_content(article_url)
+        article_content = extract_article_content(link)
         article_contents.append(article_content)
 
     return article_titles, article_links, article_contents
@@ -54,10 +56,15 @@ def extract_article_content(url):
 
 
 # Streamlit layout
-st.title('Web Article List Scraper')
+st.title('WB_ArticleScraper')
 
-# URL을 입력받고 기사 제목, 링크, 본문을 출력합니다.
-url = st.text_input("뉴스 기사 리스트 URL을 입력하세요: ", "")
+# URL 선택 옵션
+option = st.selectbox('URL 입력 방식', ['인공지능신문(aitimes) AI 산업군 - 제목형', '직접 입력'])
+
+if option == '인공지능신문(aitimes) AI 산업군 - 제목형':
+    url = "https://www.aitimes.kr/news/articleList.html?page=1&total=3382&sc_section_code=S1N4&sc_sub_section_code=&sc_serial_code=&sc_area=&sc_level=&sc_article_type=&sc_view_level=&sc_sdate=&sc_edate=&sc_serial_number=&sc_word=&box_idxno=&sc_multi_code=&sc_is_image=&sc_is_movie=&sc_user_name=&sc_order_by=E"
+else:
+    url = st.text_input("뉴스 기사 리스트 URL을 입력하세요: ", "")
 
 if url:
     try:
@@ -69,13 +76,19 @@ if url:
                 url = "https://www." + url  # 스키마 추가
         article_titles, article_links, article_contents = extract_article_list(url)
         for title, link, content in zip(article_titles, article_links, article_contents):
-            st.write('Article Title:', title)
-            st.write('Article Link:', link)
+            st.markdown(f'[{title}]({link})')
             st.text_area('Article Content:', content, height=300)
-            if st.button('Copy to Clipboard', key=title):
-                article_info = f"Title: {title}\nLink: {link}\n\n{content}"
-                pyperclip.copy(article_info)
-                st.success('Text Copied to clipboard')
+            if st.button('Summarize', key=f"{title}_summarize"):
+                summarization_model = pipeline("summarization")
+                summary = summarization_model(content, max_length=150, min_length=30, do_sample=False)[0]["summary_text"]
+                st.write('Summary:')
+                st.markdown(f"- {summary}")
+                if st.button('Copy Summary to Clipboard', key=f"{title}_summary_copy"):
+                    pyperclip.copy(summary)
+                    st.success('Summary Copied to clipboard')
+            if st.button('Copy Content to Clipboard', key=f"{title}_content_copy"):
+                pyperclip.copy(content)
+                st.success('Content Copied to clipboard')
             st.write('---')
     except Exception as e:
         st.error(f"An error occurred: {e}")
