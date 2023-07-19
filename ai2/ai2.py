@@ -2,19 +2,90 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import pyperclip
-from transformers import pipeline
+import openai
+from urllib.parse import urljoin
 
-def extract_article_content(url):
-    # Function to extract article content
+# Set OpenAI API key
+openai_key = "YOUR_OPENAI_API_KEY"  # Replace with your OpenAI API key
+
+# Configure OpenAI
+openai.api_key = openai_key
+
 
 def extract_article_list(url):
-    # Function to extract article titles, links, and contents from the article list URL
+    # 1. URL에서 HTML 내용 가져오기
+    response = requests.get(url)
+    html_content = response.content
+
+    # 2. HTML 파싱
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # 3. 기사 제목 추출
+    article_titles = []
+    title_elements = soup.select('#section-list > ul > li > h4.titles')
+    for title_element in title_elements:
+        article_title = title_element.get_text()
+        article_titles.append(article_title)
+
+    # 4. 기사 링크 추출
+    article_links = []
+    link_elements = soup.select('#section-list > ul > li > h4 > a')
+    for link_element in link_elements:
+        article_link = link_element.get('href')
+        article_url = urljoin(url, article_link)  # 절대 경로로 변환
+        article_links.append(article_url)
+
+    # 5. 기사 본문 추출
+    article_contents = []
+    for link in article_links:
+        article_content = extract_article_content(link)
+        article_contents.append(article_content)
+
+    return article_titles, article_links, article_contents
+
+
+def extract_article_content(url):
+    # 1. URL에서 HTML 내용 가져오기
+    response = requests.get(url)
+    html_content = response.content
+
+    # 2. HTML 파싱
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # 3. 본문 추출
+    article_content_element = soup.select_one('#snsAnchor > div')
+    if article_content_element is None:
+        raise ValueError("Could not find article content")
+    article_content_paragraphs = article_content_element.find_all('p')
+    article_content = "\n".join([p.get_text() for p in article_content_paragraphs])
+
+    return article_content
+
+
+def summarize_text(text, max_tokens=100, bullet_points=True):
+    prompt = f"summarize: {text}"
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=prompt,
+        max_tokens=max_tokens,
+        n=1,
+        stop=None,
+        temperature=0.5,
+        top_p=1.0,
+        frequency_penalty=0.0,
+        presence_penalty=0.0,
+    )
+    summary = response.choices[0].text.strip()
+    if bullet_points:
+        summary = "\n".join([f"- {item.strip()}" for item in summary.split("\n")])
+    return summary
+
 
 # Streamlit layout
 st.sidebar.title('OpenAI API Key')
 openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
 
-st.title('Web Article Scraper')
+st.title('WB_ArticleScraper')
 
 # URL 선택 옵션
 option = st.selectbox('URL 입력 방식', ['인공지능신문(aitimes) AI 산업군 - 제목형', '직접 입력'])
@@ -32,33 +103,20 @@ if url:
                 url = "https://" + url  # 스키마 추가
             else:
                 url = "https://www." + url  # 스키마 추가
-
         article_titles, article_links, article_contents = extract_article_list(url)
-
         for title, link, content in zip(article_titles, article_links, article_contents):
             st.markdown(f'[{title}]({link})')
             st.text_area('Article Content:', content, height=300)
-            
-            if st.button('Summarize', key=f"{title}_summarize"):
-                if openai_key:
-                    summarization_model = pipeline("summarization", model="t5-base", tokenizer="t5-base", device=0)
-                    summary = summarization_model(content, max_length=150, min_length=30, do_sample=False)[0]["summary_text"]
-                    st.write('Summary:')
-                    st.markdown(f"- {summary}")
-                    if st.button('Copy Summary to Clipboard', key=f"{title}_summary_copy"):
-                        pyperclip.copy(summary)
-                        st.success('Summary Copied to clipboard')
-                else:
-                    st.warning('Please enter your OpenAI API Key to use summarization.')
-            
+            if st.button('GPT로 요약하기', key=f"{title}_summarize"):
+                summary = summarize_text(content, max_tokens=200, bullet_points=True)
+                st.write('Summary:')
+                st.markdown(summary)
+                if st.button('Copy Summary to Clipboard', key=f"{title}_summary_copy"):
+                    pyperclip.copy(summary)
+                    st.success('Summary Copied to clipboard')
             if st.button('Copy Content to Clipboard', key=f"{title}_content_copy"):
                 pyperclip.copy(content)
                 st.success('Content Copied to clipboard')
-            
             st.write('---')
-    
     except Exception as e:
         st.error(f"An error occurred: {e}")
-
-elif not openai_key:
-    st.warning('Please enter your OpenAI API Key.')
