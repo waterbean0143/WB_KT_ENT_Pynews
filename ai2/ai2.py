@@ -69,7 +69,7 @@ def extract_article_content(url):
 
 def summarize_text(text, api_key):
     # System instruction: "The assistant should summarize the user's input into 30 characters."
-    system_instruction = "The assistant should summarize the user's input into 30 characters."
+    system_instruction = "The assistant should summarize the user's input into 30 characters.The final output is translated in Korean."
 
     messages = [
         {"role": "system", "content": system_instruction},
