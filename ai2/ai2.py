@@ -88,7 +88,7 @@ def summarize_text(text, api_key):
 # st.sidebar.title('OpenAI API Key')
 # openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", value="", type="password", key="openai_key_input")
 
-api_key = "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"
+api_key = "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"
 
 st.title('WB_ArticleScraper')
 
