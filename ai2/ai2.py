@@ -60,26 +60,22 @@ def extract_article_content(url):
 
     return article_content
 
-def summarize_text(prompt, api_key):
-    url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
-    }
-    data = {
-        "prompt": prompt,
-        "max_tokens": 150,
-        "temperature": 0.5,
-        "top_p": 1.0,
-        "frequency_penalty": 0.0,
-        "presence_penalty": 0.0
-    }
-    response = requests.post(url, json=data, headers=headers)
-    response.raise_for_status()
-    result = response.json()
-    summary = result["choices"][0]["text"].strip()
-    return summary
+def summarize_text(text, api_key):
+    # System instruction: "The assistant should summarize the user's input into 30 characters."
+    system_instruction = "The assistant should summarize the user's input into 30 characters."
 
+    messages = [
+        {"role": "system", "content": system_instruction},
+        {"role": "user", "content": text}
+    ]
+
+    openai.api_key = api_key
+    response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+
+    summary = response['choices'][0]['message']['content']
+
+    return summary
+    
 # Streamlit layout
 st.sidebar.title('OpenAI API Key')
 openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", value="", type="password", key="openai_key_input")
