@@ -69,7 +69,7 @@ def extract_article_content(url):
 
 def summarize_text(text, api_key):
     # System instruction: "The assistant should summarize the user's input into 30 characters."
-    system_instruction = "The assistant should summarize the user's input into 30 characters."
+    system_instruction = "The assistant should summarize the user's input into 30 characters in Korean."
 
     messages = [
         {"role": "system", "content": system_instruction},
@@ -87,7 +87,6 @@ def summarize_text(text, api_key):
 # Streamlit layout
 st.sidebar.title('OpenAI API Key')
 openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", value="", type="password", key="openai_key_input")
-print(openai_key)
 
 st.title('WB_ArticleScraper')
 
