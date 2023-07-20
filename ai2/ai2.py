@@ -115,7 +115,7 @@ if url:
             if st.button('GPT로 요약하기', key=f"{title}_summarize"):
                 summarization_model = pipeline("summarization", model="t5-base", tokenizer="t5-base", framework="tf", device=0)
                 prompt = "summarize: " + content[:600]  # Adjust the character limit as needed
-                summary = summarize_text(prompt, openai_key)
+                summary = summarize_text(prompt, api_key)
                 st.write('Summary:')
                 st.markdown(f"- {summary}")
                 if st.button('Copy Summary to Clipboard', key=f"{title}_summary_copy"):
