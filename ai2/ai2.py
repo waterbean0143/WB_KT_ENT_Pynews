@@ -34,8 +34,14 @@ def extract_article_list(url):
         article_content = extract_article_content(link)
         article_contents.append(article_content)
 
-    return article_titles, article_links, article_contents
+    # 6. 기사 게시 날짜 추출
+    article_dates = []
+    date_elements = soup.select('#section-list > ul > li > div > span > em:nth-child(3)')
+    for date_element in date_elements:
+        article_date = date_element.get_text()
+        article_dates.append(article_date)
 
+    return article_titles, article_links, article_contents, article_dates
 
 def extract_article_content(url):
     # 1. URL에서 HTML 내용 가져오기
@@ -50,10 +56,9 @@ def extract_article_content(url):
     if article_content_element is None:
         raise ValueError("Could not find article content")
     article_content_paragraphs = article_content_element.find_all('p')
-    article_content = "\n".join([p.get_text() for p in article_content_paragraphs])
+    article_content = "\\n".join([p.get_text() for p in article_content_paragraphs])
 
     return article_content
-
 
 def summarize_text(prompt, api_key):
     url = "https://api.openai.com/v1/engines/text-davinci-003/completions"
@@ -74,7 +79,6 @@ def summarize_text(prompt, api_key):
     result = response.json()
     summary = result["choices"][0]["text"].strip()
     return summary
-
 
 # Streamlit layout
 st.sidebar.title('OpenAI API Key')
@@ -98,9 +102,9 @@ if url:
                 url = "https://" + url  # 스키마 추가
             else:
                 url = "https://www." + url  # 스키마 추가
-        article_titles, article_links, article_contents = extract_article_list(url)
-        for title, link, content in zip(article_titles, article_links, article_contents):
-            st.markdown(f'[{title}]({link})')
+        article_titles, article_links, article_contents, article_dates = extract_article_list(url)
+        for title, date, link, content in zip(article_titles, article_dates, article_links, article_contents):
+            st.markdown(f'[{title} ({date})]({link})')
             st.text_area('Article Content:', content, height=300)
             if st.button('GPT로 요약하기', key=f"{title}_summarize"):
                 summarization_model = pipeline("summarization", model="t5-base", tokenizer="t5-base", framework="tf", device=0)
