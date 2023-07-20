@@ -69,7 +69,7 @@ def extract_article_content(url):
 
 def summarize_text(text, api_key):
     # System instruction: "The assistant should summarize the user's input into 30 characters."
-    system_instruction = "The assistant should summarize the user's input into 30 characters in Korean."
+    system_instruction = "The assistant should summarize the user's input into 30 characters."
 
     messages = [
         {"role": "system", "content": system_instruction},
@@ -85,10 +85,8 @@ def summarize_text(text, api_key):
 
 
 # Streamlit layout
-# st.sidebar.title('OpenAI API Key')
-# openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", value="", type="password", key="openai_key_input")
-
-api_key = "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"
+st.sidebar.title('OpenAI API Key')
+openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", value="", type="password", key="openai_key_input")
 
 st.title('WB_ArticleScraper')
 
@@ -115,7 +113,7 @@ if url:
             if st.button('GPT로 요약하기', key=f"{title}_summarize"):
                 summarization_model = pipeline("summarization", model="t5-base", tokenizer="t5-base", framework="tf", device=0)
                 prompt = "summarize: " + content[:600]  # Adjust the character limit as needed
-                summary = summarize_text(prompt, api_key)
+                summary = summarize_text(prompt, openai_key)
                 st.write('Summary:')
                 st.markdown(f"- {summary}")
                 if st.button('Copy Summary to Clipboard', key=f"{title}_summary_copy"):
