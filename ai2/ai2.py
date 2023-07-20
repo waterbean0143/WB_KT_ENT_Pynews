@@ -6,17 +6,15 @@ from transformers import pipeline
 from urllib.parse import urljoin
 import openai
 
-"""
-requirements.txt에 필요한 내용[streamlit 배포시 필요]
--> 일반 환경에서는 해당 라이브러리를 pip install [패키지명]으로 설치 필요
-streamlit
-requests
-bs4
-pyperclip
-transformers==4.10.3
-tensorflow==2.12
-openai==0.27.0
-"""
+# requirements.txt에 필요한 내용[streamlit 배포시 필요]
+# -> 일반 환경에서는 해당 라이브러리를 pip install [패키지명]으로 설치 필요
+# streamlit
+# requests
+# bs4
+# pyperclip
+# transformers==4.10.3
+# tensorflow==2.12
+# openai==0.27.0
 
 
 def extract_article_list(url):
@@ -81,9 +79,9 @@ def summarize_text(text, api_key):
     openai.api_key = api_key
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
 
-    result = response['choices'][0]['message']['content']
+    summary = response['choices'][0]['message']['content']
 
-    return result
+    return summary
 
 
 # Streamlit layout
