@@ -87,6 +87,7 @@ def summarize_text(text, api_key):
 # Streamlit layout
 st.sidebar.title('OpenAI API Key')
 openai_key = st.sidebar.text_input("Enter your OpenAI API Key:", value="", type="password", key="openai_key_input")
+print(openai_key)
 
 st.title('WB_ArticleScraper')
 
