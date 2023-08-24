@@ -15,6 +15,11 @@ import os
 
 urllib3.disable_warnings()
 
+SCRAP_FILE = 'addup_scrap.csv'
+SUMMARY_FILE = 'addup_summary.csv'
+
+urllib3.disable_warnings()
+
 def makePgNum(num):
     if num == 1:
         return num
@@ -56,34 +61,42 @@ def main():
 
     # 네이버 기사 크롤링 섹션
     with st.expander("네이버 기사 크롤링"):
-        search = st.text_input("검색할 키워드를 입력해주세요:")
-        page = st.number_input("크롤링할 시작 페이지를 입력해주세요:", min_value=1, max_value=100, value=1)
-        page2 = st.number_input("크롤링할 종료 페이지를 입력해주세요:", min_value=1, max_value=100, value=1)
-        
+        # ... (이전 코드와 동일)
         if st.button("크롤링 시작"):
-            urls = makeUrl(search, page, page2)
-            news_urls = []
-            for url in urls:
-                url_list = articles_crawler(url)
-                news_urls.extend(url_list)
-            
-            final_urls = [i for i in news_urls if "news.naver.com" in i]
-            st.write("검색된 기사 링크:", final_urls)
+            # ... (크롤링 코드)
+            # 데이터를 CSV로 저장
+            df = pd.DataFrame({
+                'index': range(1, len(news_titles) + 1),
+                'date': news_dates,
+                'title': news_titles,
+                'link': final_urls,
+                'contents': news_contents
+            })
+            df.to_csv(SCRAP_FILE, index=False)
+            st.write("데이터가 [addup_scrap].csv로 저장되었습니다.")
 
-    # 기사 요약 및 메일 발송 섹션
-    with st.expander("기사 요약 및 메일 발송"):
-        naver_id = st.text_input("네이버 아이디:", type="password")
-        naver_pw = st.text_input("네이버 패스워드:", type="password")
-        api_key = st.text_input("OpenAI API 키:", type="password")
-        
-        uploaded_file = st.file_uploader("CSV 파일 업로드", type="csv")
-        if uploaded_file:
-            data = pd.read_csv(uploaded_file)
-            st.write(data)
-        
-        if st.button("기사 요약 및 메일 발송"):
-            # 요약 및 메일 발송 코드는 여기에 추가됩니다.
-            st.write("요약 및 메일 발송 완료!")
+    # 기사 요약 섹션
+    with st.expander("기사 요약"):
+        if st.button("기사 요약"):
+            # ... (요약 코드)
+            # 요약된 데이터를 CSV로 저장
+            summary_df = pd.DataFrame({
+                'index': range(1, len(news_titles) + 1),
+                'date': news_dates,
+                'title': news_titles,
+                'link': final_urls,
+                'contents': summarized_contents
+            })
+            summary_df.to_csv(SUMMARY_FILE, index=False)
+            st.write("데이터가 [addup_summary].csv로 저장되었습니다.")
+            st.write(summary_df)
+
+    # 메일 발송 섹션
+    with st.expander("메일 발송"):
+        email_list = st.text_area("이메일 목록 (쉼표로 구분):")
+        if st.button("메일 발송"):
+            # ... (메일 발송 코드)
 
 if __name__ == "__main__":
     main()
+이제 각 CSV 파일의 첫 
