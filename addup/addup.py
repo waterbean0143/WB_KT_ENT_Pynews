@@ -55,7 +55,7 @@ def main():
     st.title("네이버 기사 크롤링 및 요약 애플리케이션")
 
     # 네이버 기사 크롤링 섹션
-    with st.beta_expander("네이버 기사 크롤링"):
+    with st.expander("네이버 기사 크롤링"):
         search = st.text_input("검색할 키워드를 입력해주세요:")
         page = st.number_input("크롤링할 시작 페이지를 입력해주세요:", min_value=1, max_value=100, value=1)
         page2 = st.number_input("크롤링할 종료 페이지를 입력해주세요:", min_value=1, max_value=100, value=1)
