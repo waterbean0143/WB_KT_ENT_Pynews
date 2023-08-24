@@ -4,12 +4,6 @@ import requests
 import re
 import datetime
 from tqdm import tqdm
-import streamlit as st
-from bs4 import BeautifulSoup
-import requests
-import re
-import datetime
-from tqdm import tqdm
 import pandas as pd
 import urllib3
 import openai
@@ -127,12 +121,66 @@ def main():
             })
             df.to_csv(SCRAP_FILE, index=False)
             st.write("데이터가 addup_scrap.csv로 저장되었습니다.")
-    # 메일 발송 섹션
-    with st.expander("메일 발송"):
-        email_list = st.text_area("이메일 목록 (쉼표로 구분):")
+
+def gpt_summarize(text):
+    system_instruction = "assistant는 user의 입력을 bullet point로 3줄로 요약해준다. 각 bullet point가 끝날 때마다 한 줄씩 바꾸어준다."
+    messages = [{"role": "system", "content": system_instruction}, {"role": "user", "content": text}]
+    response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+    result = response['choices'][0]['message']['content']
+    return result
+
+def send_email(subject, body, to_email, from_email, password):
+    msg = MIMEMultipart()
+    msg["From"] = from_email
+    msg["To"] = ", ".join(to_email)
+    msg["Subject"] = subject
+
+    body_part = MIMEText(body, "html")
+    msg.attach(body_part)
+
+    smtp_server = "smtp.naver.com"
+    smtp_port = 587
+    try:
+        smtp_conn = smtplib.SMTP(smtp_server, smtp_port)
+        smtp_conn.starttls()
+        smtp_conn.login(from_email, password)
+        smtp_conn.sendmail(from_email, to_email, msg.as_string())
+        st.write("이메일이 성공적으로 발송되었습니다.")
+    except smtplib.SMTPException as e:
+        st.write("이메일 발송 중 오류가 발생했습니다:", e)
+    finally:
+        smtp_conn.quit()
+
+# Streamlit UI for Summarization and Email Section
+with st.expander("기사 요약 및 메일 발송"):
+    # Load the scraped data
+    try:
+        df = pd.read_csv(SCRAP_FILE)
+        st.write(df)
+        
+        if st.button("기사 요약"):
+            # Summarize each article
+            df['contents'] = df['contents'].apply(gpt_summarize)
+            
+            # Save the summarized articles
+            df.to_csv(SUMMARY_FILE, index=False)
+            st.write("기사가 요약되어 addup_summary.csv로 저장되었습니다.")
+            
+            # Display the summarized articles
+            st.write(df)
+            
+        # Sending emails
         if st.button("메일 발송"):
-            # ... (메일 발송 코드)
+            subject = "기사 요약 결과"
+            from_email = st.text_input("당신의 이메일 주소:")
+            password = st.text_input("당신의 이메일 패스워드:", type='password')
+            to_email = st.text_input("받는 사람의 이메일 주소 (','로 구분하여 여러 명에게 보낼 수 있습니다.)").split(',')
+            
+            body = df.to_html()
+            send_email(subject, body, to_email, from_email, password)
+            
+    except FileNotFoundError:
+        st.write(f"{SCRAP_FILE} 파일이 존재하지 않습니다. 먼저 기사를 크롤링해주세요.")
 
 if __name__ == "__main__":
     main()
-이제 각 CSV 파일의 첫 
