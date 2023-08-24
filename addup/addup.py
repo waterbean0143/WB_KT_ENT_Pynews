@@ -71,7 +71,7 @@ def main():
             st.write("검색된 기사 링크:", final_urls)
 
     # 기사 요약 및 메일 발송 섹션
-    with st.beta_expander("기사 요약 및 메일 발송"):
+    with st.expander("기사 요약 및 메일 발송"):
         naver_id = st.text_input("네이버 아이디:", type="password")
         naver_pw = st.text_input("네이버 패스워드:", type="password")
         api_key = st.text_input("OpenAI API 키:", type="password")
